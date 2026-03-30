@@ -227,34 +227,64 @@
         /* Scroll Pickers */
         .scroll-picker-container {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             margin-bottom: 20px;
+            justify-content: center;
+            position: relative;
         }
 
         .scroll-picker {
             flex: 1;
-            height: 200px;
+            height: 250px;
             overflow-y: scroll;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 10px;
+            border: none;
+            border-radius: 0;
+            padding: 100px 0;
+            position: relative;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .scroll-picker::-webkit-scrollbar {
+            display: none;
         }
 
         .picker-option {
-            padding: 12px;
+            padding: 14px 8px;
             text-align: center;
             cursor: pointer;
-            border-radius: 8px;
-            margin-bottom: 4px;
+            border-radius: 0;
+            margin-bottom: 0;
+            font-size: 18px;
+            font-weight: 400;
+            color: #999;
+            scroll-snap-align: center;
+            transition: all 0.2s;
         }
 
         .picker-option:hover {
-            background: #f5f5f5;
+            background: transparent;
         }
 
         .picker-option.selected {
-            background: #2a2a2a;
-            color: white;
+            background: transparent;
+            color: #1a1a1a;
+            font-weight: 600;
+            font-size: 20px;
+        }
+
+        .scroll-picker-container::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 50px;
+            border-top: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
+            pointer-events: none;
+            z-index: 1;
         }
 
         /* Continue Button */
@@ -648,13 +678,13 @@
                         </div>
                         <span class="toggle-label inactive" id="metricLabel">Metric</span>
                     </div>
-                    <div class="input-group">
-                        <label class="input-label">Height</label>
-                        <input type="text" class="input-field" placeholder='5\'10"' id="heightInput">
+                    <div style="display: flex; gap: 20px; justify-content: center; margin-top: 20px; margin-bottom: 10px;">
+                        <span style="font-weight: 600;">Height</span>
+                        <span style="font-weight: 600;">Weight</span>
                     </div>
-                    <div class="input-group">
-                        <label class="input-label">Weight</label>
-                        <input type="text" class="input-field" placeholder="165 lbs" id="weightInput">
+                    <div class="scroll-picker-container">
+                        <div class="scroll-picker" id="heightPicker"></div>
+                        <div class="scroll-picker" id="weightPicker"></div>
                     </div>
                 </div>
                 <button class="continue-button" id="btn5" onclick="nextScreen()">Continue</button>
@@ -666,9 +696,23 @@
                 <h2 class="screen-title">When were you born?</h2>
                 <p class="screen-subtitle">This will be used to calibrate your custom plan.</p>
                 <div class="options-container">
-                    <div class="input-group">
-                        <label class="input-label">Date of Birth</label>
-                        <input type="date" class="input-field" id="birthdateInput">
+                    <div class="scroll-picker-container">
+                        <div class="scroll-picker" id="monthPicker">
+                            <div class="picker-option" data-value="January" onclick="selectPicker(this, 'month')">January</div>
+                            <div class="picker-option" data-value="February" onclick="selectPicker(this, 'month')">February</div>
+                            <div class="picker-option selected" data-value="March" onclick="selectPicker(this, 'month')">March</div>
+                            <div class="picker-option" data-value="April" onclick="selectPicker(this, 'month')">April</div>
+                            <div class="picker-option" data-value="May" onclick="selectPicker(this, 'month')">May</div>
+                            <div class="picker-option" data-value="June" onclick="selectPicker(this, 'month')">June</div>
+                            <div class="picker-option" data-value="July" onclick="selectPicker(this, 'month')">July</div>
+                            <div class="picker-option" data-value="August" onclick="selectPicker(this, 'month')">August</div>
+                            <div class="picker-option" data-value="September" onclick="selectPicker(this, 'month')">September</div>
+                            <div class="picker-option" data-value="October" onclick="selectPicker(this, 'month')">October</div>
+                            <div class="picker-option" data-value="November" onclick="selectPicker(this, 'month')">November</div>
+                            <div class="picker-option" data-value="December" onclick="selectPicker(this, 'month')">December</div>
+                        </div>
+                        <div class="scroll-picker" id="dayPicker"></div>
+                        <div class="scroll-picker" id="yearPicker"></div>
                     </div>
                 </div>
                 <button class="continue-button" id="btn6" onclick="nextScreen()">Continue</button>
@@ -1117,21 +1161,55 @@
             const toggle = document.getElementById('unitToggle');
             const imperialLabel = document.getElementById('imperialLabel');
             const metricLabel = document.getElementById('metricLabel');
-            const heightInput = document.getElementById('heightInput');
-            const weightInput = document.getElementById('weightInput');
+            const heightPicker = document.getElementById('heightPicker');
+            const weightPicker = document.getElementById('weightPicker');
             
             toggle.classList.toggle('active');
             
             if (toggle.classList.contains('active')) {
+                // Switch to Metric
                 imperialLabel.classList.add('inactive');
                 metricLabel.classList.remove('inactive');
-                heightInput.placeholder = '178 cm';
-                weightInput.placeholder = '75 kg';
+                
+                // Update height picker to cm
+                Array.from(heightPicker.children).forEach(opt => {
+                    const cm = opt.getAttribute('data-cm');
+                    opt.textContent = cm + ' cm';
+                    opt.setAttribute('data-value', cm + ' cm');
+                });
+                
+                // Update weight picker to kg
+                Array.from(weightPicker.children).forEach(opt => {
+                    const kg = opt.getAttribute('data-kg');
+                    opt.textContent = kg + ' kg';
+                    opt.setAttribute('data-value', kg + ' kg');
+                });
             } else {
+                // Switch to Imperial
                 imperialLabel.classList.remove('inactive');
                 metricLabel.classList.add('inactive');
-                heightInput.placeholder = '5\'10"';
-                weightInput.placeholder = '165 lbs';
+                
+                // Restore original imperial values
+                let feetInches = 4;
+                let inches = 0;
+                Array.from(heightPicker.children).forEach(opt => {
+                    const heightVal = `${Math.floor(feetInches)}'${inches}"`;
+                    opt.textContent = heightVal;
+                    opt.setAttribute('data-value', heightVal);
+                    inches++;
+                    if (inches >= 12) {
+                        inches = 0;
+                        feetInches++;
+                    }
+                });
+                
+                // Restore lbs
+                let lbs = 80;
+                Array.from(weightPicker.children).forEach(opt => {
+                    opt.textContent = lbs + ' lbs';
+                    opt.setAttribute('data-value', lbs + ' lbs');
+                    lbs++;
+                });
             }
         }
 
@@ -1140,8 +1218,72 @@
             nextScreen();
         }
 
+        function selectPicker(element, type) {
+            const parent = element.parentElement;
+            parent.querySelectorAll('.picker-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            
+            userData[type] = element.getAttribute('data-value');
+        }
+
+        function populatePickers() {
+            // Populate day picker (1-31)
+            const dayPicker = document.getElementById('dayPicker');
+            for (let i = 1; i <= 31; i++) {
+                const option = document.createElement('div');
+                option.className = 'picker-option';
+                if (i === 1) option.classList.add('selected');
+                option.setAttribute('data-value', i);
+                option.textContent = i;
+                option.onclick = function() { selectPicker(this, 'day'); };
+                dayPicker.appendChild(option);
+            }
+
+            // Populate year picker (1950-2020)
+            const yearPicker = document.getElementById('yearPicker');
+            for (let i = 2020; i >= 1950; i--) {
+                const option = document.createElement('div');
+                option.className = 'picker-option';
+                if (i === 1997) option.classList.add('selected');
+                option.setAttribute('data-value', i);
+                option.textContent = i;
+                option.onclick = function() { selectPicker(this, 'year'); };
+                yearPicker.appendChild(option);
+            }
+
+            // Populate height picker (Imperial: 4'0" - 7'0")
+            const heightPicker = document.getElementById('heightPicker');
+            for (let feet = 4; feet <= 7; feet++) {
+                for (let inches = 0; inches < 12; inches++) {
+                    const option = document.createElement('div');
+                    option.className = 'picker-option';
+                    const heightVal = `${feet}'${inches}"`;
+                    if (feet === 5 && inches === 10) option.classList.add('selected');
+                    option.setAttribute('data-value', heightVal);
+                    option.setAttribute('data-cm', Math.round((feet * 12 + inches) * 2.54));
+                    option.textContent = heightVal;
+                    option.onclick = function() { selectPicker(this, 'height'); };
+                    heightPicker.appendChild(option);
+                }
+            }
+
+            // Populate weight picker (Imperial: 80-300 lbs)
+            const weightPicker = document.getElementById('weightPicker');
+            for (let i = 80; i <= 300; i++) {
+                const option = document.createElement('div');
+                option.className = 'picker-option';
+                if (i === 165) option.classList.add('selected');
+                option.setAttribute('data-value', i + ' lbs');
+                option.setAttribute('data-kg', Math.round(i * 0.453592));
+                option.textContent = i + ' lbs';
+                option.onclick = function() { selectPicker(this, 'weight'); };
+                weightPicker.appendChild(option);
+            }
+        }
+
         // Initialize
         updateProgress();
+        populatePickers();
     </script>
 </body>
 </html>
